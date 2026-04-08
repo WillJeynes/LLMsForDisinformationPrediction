@@ -67,7 +67,7 @@ export function App() {
             ctx.arc(node.x, node.y, 2*node.members.length , 0, 2 * Math.PI, false);
             ctx.fill();
             
-            if (node.members.length > 2) {
+            if (node.members.length >= 2) {
               ctx.fillStyle = "black";
               ctx.fillText(node.label, node.x + 12, node.y + 4);
             }

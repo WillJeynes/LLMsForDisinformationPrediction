@@ -13,7 +13,7 @@ from tqdm import tqdm
 INPUT_CSV = "../../data/dataset-dev.csv"
 OUTPUT_JSON = "../../data/clustered_output.json"
 MODEL_NAME = "all-MiniLM-L6-v2"
-SIMILARITY_THRESHOLD = 0.55
+SIMILARITY_THRESHOLD = 0.65
 
 def generate_guid():
     return str(uuid.uuid4())
