@@ -4,16 +4,20 @@ from openai import OpenAI
 from tqdm import tqdm 
 from dotenv import load_dotenv
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# -------------------------------
+# Load environment and OpenAI client
+# -------------------------------
 load_dotenv()  # Load environment variables from .env file
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 # -------------------------------
 # CONFIG
 # -------------------------------
 INPUT_FILE = "../../data/clustered_output.json"        # Your original JSON
-OUTPUT_FILE = "../../data/clustered_output2.json"  # Output JSON file
+OUTPUT_FILE = "../../data/clustered_output2.json"     # Output JSON file
 OPENAI_MODEL = "gpt-5-nano"
-
 
 # -------------------------------
 # Load data
@@ -62,8 +66,8 @@ for node in graph:
                     queue.append(neighbor)
         components.append(component)
 
-# Filter components with size > 8
-large_components = [c for c in components if len(c) > 8 and len(c) < 50]
+# Filter components with size > 8 and < 50
+large_components = [c for c in components if 8 < len(c) < 50]
 
 print("Connected components (size > 8):", len(large_components))
 print("Total clusters in those components:", sum(len(c) for c in large_components))
@@ -94,13 +98,14 @@ def generate_title(texts):
         "\n\nTitle:"
     )
     try:
-        response = client.chat.completions.create(model=OPENAI_MODEL,
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant who creates short, meaningful titles."},
-            {"role": "user", "content": prompt}
-        ])
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant who creates short, meaningful titles."},
+                {"role": "user", "content": prompt}
+            ]
+        )
         title = response.choices[0].message.content.strip()
-        
         if title.lower().startswith("title:"):
             title = title[6:].strip()
         return title
@@ -109,19 +114,31 @@ def generate_title(texts):
         return "Untitled Cluster"
 
 # -------------------------------
-# Generate title per cluster with progress bar
+# Wrapper for parallel execution
+# -------------------------------
+def generate_title_for_cluster(cluster_id):
+    texts = extract_texts_for_cluster(cluster_id)
+    title = generate_title(texts)
+    return {"cluster_id": cluster_id, "title": title}
+
+# -------------------------------
+# Generate titles in parallel
 # -------------------------------
 clusters_in_large_components = [cid for comp in large_components for cid in comp]
 output = []
 
-print("\nGenerating GPT titles for clusters...")
-for cluster_id in tqdm(clusters_in_large_components, desc="Clusters", ncols=100):
-    texts = extract_texts_for_cluster(cluster_id)
-    title = generate_title(texts)
-    output.append({
-        "cluster_id": cluster_id,
-        "title": title
-    })
+print("\nGenerating GPT titles for clusters (parallel)...")
+
+with ThreadPoolExecutor(max_workers=10) as executor:
+    future_to_cluster = {executor.submit(generate_title_for_cluster, cid): cid for cid in clusters_in_large_components}
+    for future in tqdm(as_completed(future_to_cluster), total=len(clusters_in_large_components), desc="Clusters", ncols=100):
+        try:
+            result = future.result()
+            output.append(result)
+        except Exception as e:
+            cid = future_to_cluster[future]
+            print(f"Error processing cluster {cid}: {e}")
+            output.append({"cluster_id": cid, "title": "Untitled Cluster"})
 
 # -------------------------------
 # Save JSON

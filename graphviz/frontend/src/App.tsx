@@ -3,6 +3,7 @@ import ForceGraph2D from "react-force-graph-2d";
 import * as d3 from "d3-force-3d";
 
 import data from "./data.json";
+import titlesData from "./titles.json";
 
 function drawRoundedRect(ctx, x, y, width, height, radius) {
   const r = Math.min(radius, width / 2, height / 2);
@@ -24,10 +25,13 @@ function buildGraph(data) {
   const nodes = [];
   const links = [];
 
+  // Create a lookup map for quick access
+  const titleMap = new Map(titlesData.map(t => [t.cluster_id, t.title]));
+
   data.claim_clusters.forEach((cluster) => {
     nodes.push({
       id: cluster.cluster_id,
-      label: cluster.title || "Unnamed Claim Cluster",
+      label: titleMap.get(cluster.cluster_id) || cluster.title || "Unnamed Claim Cluster",
       type: "claim_cluster",
       members: cluster.members
     });
@@ -36,7 +40,7 @@ function buildGraph(data) {
   data.event_clusters.forEach((cluster) => {
     nodes.push({
       id: cluster.cluster_id,
-      label: cluster.title || "Unnamed Event Cluster",
+      label: titleMap.get(cluster.cluster_id) || cluster.title || "Unnamed Event Cluster",
       type: "event_cluster",
       members: cluster.members
     });
@@ -124,13 +128,15 @@ export function App() {
     // Stronger repulsion
     fgRef.current.d3Force(
       "charge",
-      d3.forceManyBody().strength(-3000)
+      d3.forceManyBody().strength(-10000)
     );
+
+    
 
     // Link distance
     fgRef.current.d3Force(
       "link",
-      d3.forceLink().distance(240)
+      d3.forceLink().distance(140)
     );
 
     // Collision based on dynamic box size
@@ -138,7 +144,7 @@ export function App() {
       "collision",
       d3.forceCollide((node) => {
         const dims = node.__bckgDimensions;
-        return dims ? Math.max(dims[0], dims[1]) / 2 + 16 : 20;
+        return dims ? Math.max(dims[0], dims[1]) / 2 + 32 : 40;
       })
     );
 
@@ -224,7 +230,7 @@ export function App() {
           <br />
           <input
             type="range"
-            min="8"
+            min="9"
             max="49"
             value={minGraphSize}
             onChange={(e) => setMinGraphSize(Number(e.target.value))}
