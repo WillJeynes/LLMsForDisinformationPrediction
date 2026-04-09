@@ -92,8 +92,8 @@ export function App() {
         graphData={graphData}
         nodeLabel={(node) => node.label}
         nodeAutoColorBy="type"
-        linkDirectionalParticles={1}
-        linkDirectionalParticleSpeed={0.002}
+        linkColor={() => "black"}
+        linkWidth={2.5}
         onNodeRightClick={(node) => setSelectedNode(node)}
 
         nodeCanvasObject={(node, ctx, globalScale) => {
