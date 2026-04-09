@@ -89,7 +89,7 @@ def extract_texts_for_cluster(cluster_id):
 # -------------------------------
 def generate_title(texts):
     prompt = (
-        "Summarize the following texts into a concise 2 - 4 word title that captures the main theme:\n\n"
+        "Summarize the following texts into a concise 3 - 6 word title that captures the main theme:\n\n"
         + "\n".join(f"- {t}" for t in texts) +
         "\n\nTitle:"
     )
@@ -100,7 +100,9 @@ def generate_title(texts):
             {"role": "user", "content": prompt}
         ])
         title = response.choices[0].message.content.strip()
-        print(title)
+        
+        if title.lower().startswith("title:"):
+            title = title[6:].strip()
         return title
     except Exception as e:
         print("Error generating title:", e)
