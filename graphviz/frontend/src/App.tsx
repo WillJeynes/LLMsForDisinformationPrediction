@@ -52,11 +52,71 @@ function buildGraph(data) {
   return { nodes, links };
 }
 
+function getConnectedComponents(nodes, links) {
+  const adj = new Map();
+
+  nodes.forEach(n => adj.set(n.id, new Set()));
+
+  links.forEach(l => {
+    adj.get(l.source)?.add(l.target);
+    adj.get(l.target)?.add(l.source);
+  });
+
+  const visited = new Set();
+  const components = [];
+
+  for (const node of nodes) {
+    if (visited.has(node.id)) continue;
+
+    const stack = [node.id];
+    const comp = [];
+
+    while (stack.length) {
+      const id = stack.pop();
+      if (visited.has(id)) continue;
+
+      visited.add(id);
+      comp.push(id);
+
+      adj.get(id)?.forEach(nei => {
+        if (!visited.has(nei)) stack.push(nei);
+      });
+    }
+
+    components.push(comp);
+  }
+
+  return components;
+}
+
 export function App() {
   const fgRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
+  const [minGraphSize, setMinGraphSize] = useState(10);
 
-  const graphData = useMemo(() => buildGraph(data), []);
+  const graphData = useMemo(() => {
+    const full = buildGraph(data);
+
+    const components = getConnectedComponents(full.nodes, full.links);
+
+    // keep only components large enough
+    const validIds = new Set(
+      components
+        .filter(comp => comp.length >= minGraphSize && comp.length < 50)
+        .flat()
+    );
+
+    const filteredNodes = full.nodes.filter(n => validIds.has(n.id));
+
+    const filteredLinks = full.links.filter(
+      l => validIds.has(l.source) && validIds.has(l.target)
+    );
+
+    return {
+      nodes: filteredNodes,
+      links: filteredLinks
+    };
+  }, [minGraphSize]);
 
   useEffect(() => {
     if (!fgRef.current) return;
@@ -83,7 +143,7 @@ export function App() {
     );
 
     fgRef.current.d3ReheatSimulation();
-  }, []);
+  }, [graphData]);
 
   return (
     <div>
@@ -149,19 +209,30 @@ export function App() {
       <div
         style={{
           position: "absolute",
-          top: 0,
-          right: 0,
+          top: "10px",
+          right: "10px",
           borderRadius: "3px",
           backgroundColor: "gray",
-          padding: "10px",
-          maxWidth: "300px"
+          padding: "20px",
+          maxWidth: "500px"
         }}
       >
+         <h2>Config</h2>
+          <label>
+            Min connected graph size: <strong>{minGraphSize}</strong>
+          </label>
+          <br />
+          <input
+            type="range"
+            min="8"
+            max="49"
+            value={minGraphSize}
+            onChange={(e) => setMinGraphSize(Number(e.target.value))}
+          />
+
         <h2>Details</h2>
         {selectedNode ? (
           <div>
-            <p><strong>ID:</strong> {selectedNode.id}</p>
-            <p><strong>Type:</strong> {selectedNode.type}</p>
             <p><strong>Title:</strong> {selectedNode.label}</p>
 
             {selectedNode.members && (

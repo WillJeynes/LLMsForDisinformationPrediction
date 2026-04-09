@@ -10,10 +10,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
 
 
-INPUT_CSV = "../../data/dataset-dev.csv"
+INPUT_CSV = "../../data/dataset.csv"
 OUTPUT_JSON = "../../data/clustered_output.json"
 MODEL_NAME = "all-MiniLM-L6-v2"
-SIMILARITY_THRESHOLD = 0.65
+SIMILARITY_THRESHOLD = 0.8
 
 def generate_guid():
     return str(uuid.uuid4())
