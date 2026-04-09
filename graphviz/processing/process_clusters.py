@@ -1,11 +1,19 @@
 import json
 from collections import defaultdict, deque
+import openai
+from tqdm import tqdm 
+from dotenv import load_dotenv
+import os
 
 # -------------------------------
 # CONFIG
 # -------------------------------
 INPUT_FILE = "../../data/clustered_output.json"        # Your original JSON
 OUTPUT_FILE = "../../data/clustered_output2.json"  # Output JSON file
+OPENAI_MODEL = "gpt-5-nano"
+
+load_dotenv()  # Load environment variables from .env file
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # -------------------------------
 # Load data
@@ -21,7 +29,7 @@ event_clusters = {e["cluster_id"] for e in data["event_clusters"]}
 all_clusters = claim_clusters.union(event_clusters)
 
 # -------------------------------
-# Build graph from cluster links
+# Build graph
 # -------------------------------
 graph = defaultdict(set)
 for link in data.get("cluster_links", []):
@@ -30,7 +38,6 @@ for link in data.get("cluster_links", []):
     graph[c_id].add(e_id)
     graph[e_id].add(c_id)
 
-# Make sure all clusters appear in graph (even isolated ones)
 for cid in all_clusters:
     graph[cid] = graph[cid]
 
@@ -58,62 +65,69 @@ for node in graph:
 # Filter components with size > 8
 large_components = [c for c in components if len(c) > 8 and len(c) < 50]
 
-# -------------------------------
-# Output stats
-# -------------------------------
-num_components = len(large_components)
-num_nodes = sum(len(c) for c in large_components)
-
-print("Connected components (size > 8):", num_components)
-print("Total clusters in those components:", num_nodes)
+print("Connected components (size > 8):", len(large_components))
+print("Total clusters in those components:", sum(len(c) for c in large_components))
 
 # -------------------------------
-# Prepare lookup tables
+# Prepare lookups
 # -------------------------------
 claim_lookup = {c["id"]: c["text"] for c in data["claims"]}
 event_lookup = {e["id"]: e["text"] for e in data["events"]}
-
 claim_cluster_map = {c["cluster_id"]: c["members"] for c in data["claim_clusters"]}
 event_cluster_map = {e["cluster_id"]: e["members"] for e in data["event_clusters"]}
 
-def extract_texts(component):
+def extract_texts_for_cluster(cluster_id):
     texts = []
-    for cid in component:
-        if cid in claim_cluster_map:
-            texts.extend([claim_lookup[mid] for mid in claim_cluster_map[cid] if mid in claim_lookup])
-        elif cid in event_cluster_map:
-            texts.extend([event_lookup[mid] for mid in event_cluster_map[cid] if mid in event_lookup])
+    if cluster_id in claim_cluster_map:
+        texts.extend([claim_lookup[mid] for mid in claim_cluster_map[cluster_id] if mid in claim_lookup])
+    elif cluster_id in event_cluster_map:
+        texts.extend([event_lookup[mid] for mid in event_cluster_map[cluster_id] if mid in event_lookup])
     return texts
 
 # -------------------------------
-# Optional: Generate titles
+# GPT-based title generation
 # -------------------------------
-user_input = input("Generate titles for each component? (y/n): ")
+def generate_title(texts):
+    prompt = (
+        "Summarize the following texts into a concise 3 - 5 word title that captures the main theme:\n\n"
+        + "\n".join(f"- {t}" for t in texts) +
+        "\n\nTitle:"
+    )
+    try:
+        response = openai.ChatCompletion.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant who creates short, meaningful titles."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=20
+        )
+        title = response.choices[0].message["content"].strip()
+        return title
+    except Exception as e:
+        print("Error generating title:", e)
+        return "Untitled Cluster"
 
-if user_input.lower() == "y":
-    output = []
+# -------------------------------
+# Generate title per cluster with progress bar
+# -------------------------------
+clusters_in_large_components = [cid for comp in large_components for cid in comp]
+output = []
 
-    for i, comp in enumerate(large_components):
-        texts = extract_texts(comp)
+print("\nGenerating GPT titles for clusters...")
+for cluster_id in tqdm(clusters_in_large_components, desc="Clusters", ncols=100):
+    texts = extract_texts_for_cluster(cluster_id)
+    title = generate_title(texts)
+    output.append({
+        "cluster_id": cluster_id,
+        "title": title
+    })
 
-        # Show a few sample texts
-        print(f"\nComponent {i} sample texts:")
-        for t in texts[:5]:
-            print("-", t)
+# -------------------------------
+# Save JSON
+# -------------------------------
+with open(OUTPUT_FILE, "w") as f:
+    json.dump(output, f, indent=2)
 
-        # Ask user for a 3-5 word title (could be automated with OpenAI API)
-        title = input("Enter 3-5 word title: ")
-
-        output.append({
-            "component_id": i,
-            "cluster_ids": list(comp),
-            "title": title
-        })
-
-    # Save JSON
-    with open(OUTPUT_FILE, "w") as f:
-        json.dump(output, f, indent=2)
-
-    print(f"Saved cluster titles to {OUTPUT_FILE}")
-else:
-    print("No titles generated. Script finished.")
+print(f"\nSaved cluster titles to {OUTPUT_FILE}")
