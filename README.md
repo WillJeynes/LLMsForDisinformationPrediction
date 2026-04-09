@@ -1,8 +1,12 @@
 # AI models for identifying trigger events in disinformation analysis
 Final Dissertation Submission Repository - Future work with created dataset
 
+## Dataset link
+[https://huggingface.co/datasets/WillJeynes/LLMsForDisinformationAnalysis-Dataset](https://huggingface.co/datasets/WillJeynes/LLMsForDisinformationAnalysis-Dataset)
+
 ## Graph Viz
 A way to visualise the connections between claims and trigger events
+
 Visible here: [https://jillweynes.github.io/LLMsForDisinformationPrediction-GraphVizBuilt/](https://jillweynes.github.io/LLMsForDisinformationPrediction-GraphVizBuilt/)
 
 ## Repository Structure
