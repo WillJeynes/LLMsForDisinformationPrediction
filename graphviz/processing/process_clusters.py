@@ -1,10 +1,12 @@
 import json
 from collections import defaultdict, deque
-import openai
+from openai import OpenAI
 from tqdm import tqdm 
 from dotenv import load_dotenv
 import os
 
+load_dotenv()  # Load environment variables from .env file
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # -------------------------------
 # CONFIG
 # -------------------------------
@@ -12,8 +14,6 @@ INPUT_FILE = "../../data/clustered_output.json"        # Your original JSON
 OUTPUT_FILE = "../../data/clustered_output2.json"  # Output JSON file
 OPENAI_MODEL = "gpt-5-nano"
 
-load_dotenv()  # Load environment variables from .env file
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # -------------------------------
 # Load data
@@ -89,21 +89,18 @@ def extract_texts_for_cluster(cluster_id):
 # -------------------------------
 def generate_title(texts):
     prompt = (
-        "Summarize the following texts into a concise 3 - 5 word title that captures the main theme:\n\n"
+        "Summarize the following texts into a concise 2 - 4 word title that captures the main theme:\n\n"
         + "\n".join(f"- {t}" for t in texts) +
         "\n\nTitle:"
     )
     try:
-        response = openai.ChatCompletion.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant who creates short, meaningful titles."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=20
-        )
-        title = response.choices[0].message["content"].strip()
+        response = client.chat.completions.create(model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant who creates short, meaningful titles."},
+            {"role": "user", "content": prompt}
+        ])
+        title = response.choices[0].message.content.strip()
+        print(title)
         return title
     except Exception as e:
         print("Error generating title:", e)
