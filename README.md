@@ -7,10 +7,9 @@ Visible here: [https://jillweynes.github.io/LLMsForDisinformationPrediction-Grap
 
 ## Repository Structure
 ```
-├── run.sh                          # Bash script to run project elements from one place
-├── graphviz
-|   ├── frontend                    # React + Parcel + react-force-graph frontend to visualise results
-|   └── processing                  # Python scripts to generate clusters and titles
+├── graphviz/
+|   ├── frontend/                   # React + Parcel + react-force-graph frontend to visualise results
+|   └── processing/                 # Python scripts to generate clusters and titles
 └── data/                           # Holder from project data
     ├── dataset.jsonl               # Collated dataset - in full format
     └── dataset.csv                 # Collated dataset - in CSV format
