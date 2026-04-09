@@ -60,23 +60,33 @@ export function App() {
           //linkDirectionalParticleSpeed={0.002}
           onNodeRightClick={(node) => setNode(node)}
           nodeCanvasObject={(node, ctx, globalScale) => {
-            const fontSize = 12;
+            const label = node.label;
+            const fontSize = 6 + 2*node.members.length;
             ctx.font = `${fontSize}px Sans-Serif`;
+            const textWidth = ctx.measureText(label).width;
+            const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
+
             ctx.fillStyle = node.type.includes('claim') ? "blue" : "green";
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, 2*node.members.length , 0, 2 * Math.PI, false);
-            ctx.fill();
-            
-            if (node.members.length >= 2) {
-              ctx.fillStyle = "black";
-              ctx.fillText(node.label, node.x + 12, node.y + 4);
-            }
+            ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText(label, node.x, node.y);
+
+            node.__bckgDimensions = bckgDimensions; 
             
           }}
+          nodePointerAreaPaint={(node, color, ctx) => {
+            ctx.fillStyle = color;
+            const bckgDimensions = node.__bckgDimensions;
+            bckgDimensions && ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+          }}
+             
         />
       </div>
 
-      <div style={{ position:"absolute", top:0, left:0 }}>
+      <div style={{ position:"absolute", top:0, right:0, borderRadius: "3px", backgroundColor: "gray"}}>
         <h2>Details</h2>
         {selectedNode ? (
           <div>
