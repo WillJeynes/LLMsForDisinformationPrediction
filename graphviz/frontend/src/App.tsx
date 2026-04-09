@@ -160,7 +160,7 @@ export function App() {
         nodeAutoColorBy="type"
         linkColor={() => "black"}
         linkWidth={2.5}
-        onNodeRightClick={(node) => setSelectedNode(node)}
+        onNodeClick={(node) => setSelectedNode(node)}
 
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.label;
@@ -231,7 +231,7 @@ export function App() {
           <input
             type="range"
             min="9"
-            max="49"
+            max="20"
             value={minGraphSize}
             onChange={(e) => setMinGraphSize(Number(e.target.value))}
           />
@@ -261,7 +261,7 @@ export function App() {
             )}
           </div>
         ) : (
-          <p>Right-click a cluster node to see its members</p>
+          <p>Click a node to see details</p>
         )}
       </div>
     </div>
