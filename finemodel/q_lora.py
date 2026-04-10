@@ -7,8 +7,8 @@ from peft import PeftModel
 # -----------------------------
 # Config
 # -----------------------------
-BASE_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-ADAPTER_PATH = "./ft_lora_adapter"
+BASE_MODEL_NAME = "distilgpt2"
+ADAPTER_PATH = "./ft_gt_lora_adapter"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
