@@ -97,7 +97,7 @@ def compare(event_input):
 # Interactive loop
 # -----------------------------
 if __name__ == "__main__":
-    print("Base vs LoRA comparison ready. Type 'exit' to quit.\n")
+    print("Base vs LoRA comparison ready! Type 'exit' to quit.\n")
 
     while True:
         event = input("Enter event: ")
