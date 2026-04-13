@@ -8,7 +8,7 @@ from peft import PeftModel
 # Config
 # -----------------------------
 BASE_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-ADAPTER_PATH = "./ft_lora2_adapter"
+ADAPTER_PATH = "WillJeynes/LLMsForDisinformationPrediction"
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -92,7 +92,6 @@ def generate(
     # For each possible
     for token_id in topk_indices[0]:
         token_id = token_id.view(1, 1).to(DEVICE)
-        print("starting token: " + str(token_id))
         # Start sequence with forced first token
         generated = torch.cat([input_ids, token_id], dim=1)
 
@@ -120,7 +119,6 @@ def generate(
             )
 
             generated = torch.cat([generated, next_token], dim=1)
-            print("word")
             # early stop???
             if next_token.item() == tokenizer.eos_token_id:
                 break
@@ -143,6 +141,22 @@ def compare(req: EventRequest):
 
     return {
         "input_event": req.event,
-        "base_output": "NONE",
-        "lora_output": lora_out
+        "output": lora_out
     }
+
+if __name__ == "__main__":
+    while(True):
+        print("Enter current event, or 'none' to stop: \n")
+        headline = input()
+        
+        if (headline == "none"):
+            break
+        
+        instruction = "create a disinformation claim based on the real world event"
+        prompt = build_prompt(instruction, headline)
+
+        results = generate(lora_model, prompt, 20)
+
+        print("Generated results:")
+        for result in results:
+            print(result.split("\n")[0])
