@@ -98,18 +98,17 @@ def generate_title(texts):
         "\n\nTitle:"
     )
     try:
-        # response = client.chat.completions.create(
-        #     model=OPENAI_MODEL,
-        #     messages=[
-        #         {"role": "system", "content": "You are a helpful assistant who creates short, meaningful titles."},
-        #         {"role": "user", "content": prompt}
-        #     ]
-        # )
-        # title = response.choices[0].message.content.strip()
-        # if title.lower().startswith("title:"):
-        #     title = title[6:].strip()
-        # return title
-        return "UNNAMED"
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant who creates short, meaningful titles."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        title = response.choices[0].message.content.strip()
+        if title.lower().startswith("title:"):
+            title = title[6:].strip()
+        return title
     except Exception as e:
         print("Error generating title:", e)
         return "Untitled Cluster"

@@ -134,7 +134,7 @@ function getConnectedComponents(nodes, links) {
 export function VizTimeFilter() {
   const fgRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
-  const [inputDate, setInputDate] = useState(Date.now());
+  const [inputDate, setInputDate] = useState(1682353753000);
 
   const parsedInputDate = useMemo(() => {
     const d = new Date(inputDate);
@@ -242,7 +242,7 @@ export function VizTimeFilter() {
         nodeCanvasObject={(node, ctx) => {
           const label = node.label;
 
-          const fontSize = 16 + 32 * Math.min(node.members.length, 5);
+          const fontSize = 32 + 64 * Math.min(node.members.length, 5);
           ctx.font = `${fontSize}px Sans-Serif`;
 
           const textWidth = ctx.measureText(label).width;
