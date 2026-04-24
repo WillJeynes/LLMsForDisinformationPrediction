@@ -2,4 +2,6 @@
 dist/
 node_modules/
 src/data.json
+src/data_date.json
 src/titles.json
+src/titles_date.json
