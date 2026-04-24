@@ -139,7 +139,7 @@ function getConnectedComponents(nodes, links) {
 export function App2() {
   const fgRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
-  const [inputDate, setInputDate] = useState("");
+  const [inputDate, setInputDate] = useState(Date.now());
 
   const parsedInputDate = useMemo(() => {
     const d = new Date(inputDate);
@@ -182,11 +182,31 @@ export function App2() {
 
     fgRef.current.d3ReheatSimulation();
   }, [graphData]);
+
+  const timeRange = useMemo(() => {
+    let min = Infinity;
+    let max = -Infinity;
+
+    [...data.claims, ...data.events].forEach(d => {
+      if (!d.date) return;
+      const t = parseDateSafe(d.date)?.getTime();
+      if (t == null) {
+        return
+      }
+      if (t < min) min = t;
+      if (t > max) max = t;
+    });
+
+    return { min, max };
+  }, []);
+
+
   function isNodeHighlighted(node, referenceDate) {
     if (!referenceDate || !node.avgDate) return false;
     const diffMonths = Math.abs(referenceDate - node.avgDate) / (1000 * 60 * 60 * 24 * 30.44);
     return diffMonths <= 6;
   }
+
   const highlightedNodeIds = useMemo(() => {
     if (!parsedInputDate) return new Set();
 
@@ -291,22 +311,13 @@ export function App2() {
           maxWidth: "500px"
         }}
       >
-        <h2>FILTERS</h2>
-
-        <label>
-          Reference date:
-          <input
-            type="date"
-            value={inputDate}
-            onChange={(e) => setInputDate(e.target.value)}
-          />
-        </label>
 
         <h2>Details</h2>
         {selectedNode ? (
           <div>
-            <p><strong>Title:</strong> {selectedNode.label}</p>
 
+            <p><strong>Title:</strong> {selectedNode.label}</p>
+            <p><strong>Date: </strong>{new Date(selectedNode.avgDate).toISOString().slice(0, 10)}</p>
             {selectedNode.members && (
               <div>
                 <p><strong>Members:</strong></p>
@@ -329,6 +340,33 @@ export function App2() {
         ) : (
           <p>Click a node to see details</p>
         )}
+      </div>
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          background: "#222",
+          padding: "10px 20px",
+          boxSizing: "border-box",
+          zIndex: 10
+        }}
+      >
+        <input
+          type="range"
+          min={timeRange.min}
+          max={timeRange.max}
+          value={inputDate}
+          onChange={(e) => setInputDate(new Number(e.target.value))}
+          style={{
+            width: "100%"
+          }}
+        />
+
+        <div style={{ color: "white", fontSize: "12px", marginTop: "5px" }}>
+          {new Date(inputDate).toISOString().slice(0, 10)} (± 6 months window)
+        </div>
       </div>
     </div>
   );
