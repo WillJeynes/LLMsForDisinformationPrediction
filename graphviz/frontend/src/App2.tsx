@@ -239,9 +239,10 @@ export function App2() {
             highlightedNodeIds.has(sourceId) &&
             highlightedNodeIds.has(targetId);
 
-          return bothHighlighted ? "orange" : "white";
+          return bothHighlighted ? "orange" : "rgba(0,0,0,0)";
         }}
         linkWidth={2.5}
+
         onNodeClick={(node) => setSelectedNode(node)}
         nodeCanvasObject={(node, ctx) => {
           const label = node.label;
@@ -290,8 +291,17 @@ export function App2() {
           node.__bckgPos = { x, y };
         }}
         nodePointerAreaPaint={(node, color, ctx) => {
+          let isHighlighted = false;
+
+          if (parsedInputDate && node.avgDate) {
+            const diffMonths = monthsDiff(parsedInputDate, node.avgDate);
+            isHighlighted = diffMonths <= 6;
+          }
+          if (!isHighlighted) return;
+
           const dims = node.__bckgDimensions;
           const pos = node.__bckgPos;
+
           if (!dims || !pos) return;
 
           ctx.fillStyle = color;
