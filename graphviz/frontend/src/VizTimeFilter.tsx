@@ -29,11 +29,6 @@ function parseDateSafe(dateStr) {
   return d;
 }
 
-function monthsDiff(a, b) {
-  const ms = Math.abs(a - b);
-  return ms / (1000 * 60 * 60 * 24 * 30.44);
-}
-
 function buildLookupMaps(data) {
   const claimMap = new Map(data.claims.map(c => [c.id, c]));
   const eventMap = new Map(data.events.map(e => [e.id, e]));
@@ -136,7 +131,7 @@ function getConnectedComponents(nodes, links) {
   return components;
 }
 
-export function App2() {
+export function VizTimeFilter() {
   const fgRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
   const [inputDate, setInputDate] = useState(Date.now());
@@ -261,18 +256,11 @@ export function App2() {
 
           const radius = Math.min(10, fontSize * 0.6);
 
-          let isHighlighted = false;
-
-          if (parsedInputDate && node.avgDate) {
-            const diffMonths = monthsDiff(parsedInputDate, node.avgDate);
-            isHighlighted = diffMonths <= 6;
-          }
-
           ctx.fillStyle = node.type.includes("claim")
             ? "blue"
             : "green"
 
-          if (isHighlighted) {
+          if (highlightedNodeIds.has(node.id)) {
             drawRoundedRect(ctx, x, y, width, height, radius);
             ctx.fill();
             ctx.strokeStyle = "white";
@@ -291,13 +279,7 @@ export function App2() {
           node.__bckgPos = { x, y };
         }}
         nodePointerAreaPaint={(node, color, ctx) => {
-          let isHighlighted = false;
-
-          if (parsedInputDate && node.avgDate) {
-            const diffMonths = monthsDiff(parsedInputDate, node.avgDate);
-            isHighlighted = diffMonths <= 6;
-          }
-          if (!isHighlighted) return;
+          if (!highlightedNodeIds.has(node.id)) return;
 
           const dims = node.__bckgDimensions;
           const pos = node.__bckgPos;
@@ -321,11 +303,10 @@ export function App2() {
           maxWidth: "500px"
         }}
       >
-
+        <p><a href="#home">Go Home</a></p>
         <h2>Details</h2>
         {selectedNode ? (
           <div>
-
             <p><strong>Title:</strong> {selectedNode.label}</p>
             <p><strong>Date: </strong>{new Date(selectedNode.avgDate).toISOString().slice(0, 10)}</p>
             {selectedNode.members && (

@@ -1,11 +1,12 @@
-import { createRoot } from 'react-dom/client';
-import { StrictMode } from 'react';
-import { App2 } from './App2';
+import { createRoot } from "react-dom/client";
+import { StrictMode } from "react";
+import { AppRouter } from "./AppRouter";
 
 let container = document.getElementById("app")!;
-let root = createRoot(container)
+let root = createRoot(container);
+
 root.render(
   <StrictMode>
-    <App2 />
+    <AppRouter />
   </StrictMode>
 );

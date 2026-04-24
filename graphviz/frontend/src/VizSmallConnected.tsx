@@ -93,7 +93,7 @@ function getConnectedComponents(nodes, links) {
   return components;
 }
 
-export function App() {
+export function VizSmallConnected() {
   const fgRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
   const [minGraphSize, setMinGraphSize] = useState(10);
@@ -223,6 +223,7 @@ export function App() {
           maxWidth: "500px"
         }}
       >
+        <p><a href="#home">Go Home</a></p>
          <h2>Config</h2>
           <label>
             Min connected graph size: <strong>{minGraphSize}</strong>
