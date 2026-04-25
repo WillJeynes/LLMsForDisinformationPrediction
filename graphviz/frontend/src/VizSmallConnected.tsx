@@ -151,6 +151,12 @@ export function VizSmallConnected() {
     fgRef.current.d3ReheatSimulation();
   }, [graphData]);
 
+    useEffect(() => {
+    if (fgRef.current) {
+      fgRef.current.zoom(0.01, 0);
+    }
+  }, []);
+
   return (
     <div>
       <ForceGraph2D

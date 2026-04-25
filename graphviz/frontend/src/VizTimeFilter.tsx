@@ -134,7 +134,8 @@ function getConnectedComponents(nodes, links) {
 export function VizTimeFilter() {
   const fgRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
-  const [inputDate, setInputDate] = useState(1682353753000);
+  const [inputDate, setInputDate] = useState(1682353753000); //some time in 2023
+  const [showAll, setShowAll] = useState(false);
 
   const parsedInputDate = useMemo(() => {
     const d = new Date(inputDate);
@@ -208,13 +209,19 @@ export function VizTimeFilter() {
     const set = new Set();
 
     graphData.nodes.forEach((n) => {
-      if (isNodeHighlighted(n, parsedInputDate)) {
+      if (showAll || isNodeHighlighted(n, parsedInputDate)) {
         set.add(n.id);
       }
     });
 
     return set;
-  }, [graphData.nodes, parsedInputDate]);
+  }, [graphData.nodes, parsedInputDate, showAll]);
+
+  useEffect(() => {
+  if (fgRef.current) {
+    fgRef.current.zoom(0.01, 0);
+  }
+}, []);
 
   return (
     <div>
@@ -237,7 +244,6 @@ export function VizTimeFilter() {
           return bothHighlighted ? "orange" : "rgba(0,0,0,0)";
         }}
         linkWidth={2.5}
-
         onNodeClick={(node) => setSelectedNode(node)}
         nodeCanvasObject={(node, ctx) => {
           const label = node.label;
@@ -355,8 +361,28 @@ export function VizTimeFilter() {
           }}
         />
 
-        <div style={{ color: "white", fontSize: "12px", marginTop: "5px" }}>
-          {new Date(inputDate).toISOString().slice(0, 10)} (± 6 months window)
+        <div
+          style={{
+            color: "white",
+            fontSize: "12px",
+            marginTop: "5px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>
+            {new Date(inputDate).toISOString().slice(0, 10)} (± 6 months window)
+          </span>
+
+          <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+            <span>Show all</span>
+            <input
+              type="checkbox"
+              checked={showAll}
+              onChange={() => setShowAll(!showAll)}
+            />
+          </label>
         </div>
       </div>
     </div>
