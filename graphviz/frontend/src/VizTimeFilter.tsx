@@ -4,6 +4,10 @@ import * as d3 from "d3-force-3d";
 
 import data from "./data_date.json";
 import titlesData from "./titles_date.json";
+import HomeButton from "./utils/HomeButton";
+import { FloatingPanelStack } from "./utils/FloatingPanelStack";
+import { DetailsPanel } from "./utils/DetailsPanel";
+import { FloatingPanel } from "./utils/FloatingPanel";
 
 function drawRoundedRect(ctx, x, y, width, height, radius) {
   const r = Math.min(radius, width / 2, height / 2);
@@ -136,6 +140,7 @@ export function VizTimeFilter() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [inputDate, setInputDate] = useState(1682353753000); //some time in 2023
   const [showAll, setShowAll] = useState(false);
+  const [filterLeeway, setFilterLeeway] = useState(6);
 
   const parsedInputDate = useMemo(() => {
     const d = new Date(inputDate);
@@ -200,7 +205,7 @@ export function VizTimeFilter() {
   function isNodeHighlighted(node, referenceDate) {
     if (!referenceDate || !node.avgDate) return false;
     const diffMonths = Math.abs(referenceDate - node.avgDate) / (1000 * 60 * 60 * 24 * 30.44);
-    return diffMonths <= 6;
+    return diffMonths <= filterLeeway;
   }
 
   const highlightedNodeIds = useMemo(() => {
@@ -215,21 +220,24 @@ export function VizTimeFilter() {
     });
 
     return set;
-  }, [graphData.nodes, parsedInputDate, showAll]);
+  }, [graphData.nodes, parsedInputDate, showAll, filterLeeway]);
 
   useEffect(() => {
-  if (fgRef.current) {
-    fgRef.current.zoom(0.01, 0);
-  }
-}, []);
+    if (fgRef.current) {
+      fgRef.current.zoom(0.01, 0);
+    }
+  }, []);
 
   return (
     <div>
+      <HomeButton />
       <ForceGraph2D
         ref={fgRef}
         graphData={graphData}
         nodeLabel={(node) => node.label}
         nodeAutoColorBy="type"
+        linkDirectionalArrowLength={500}
+        linkDirectionalArrowRelPos={0.9}
         linkColor={(link) => {
           const sourceId =
             typeof link.source === "object" ? link.source.id : link.source;
@@ -241,7 +249,7 @@ export function VizTimeFilter() {
             highlightedNodeIds.has(sourceId) &&
             highlightedNodeIds.has(targetId);
 
-          return bothHighlighted ? "orange" : "rgba(0,0,0,0)";
+          return bothHighlighted ? "black" : "rgba(0,0,0,0)";
         }}
         linkWidth={2.5}
         onNodeClick={(node) => setSelectedNode(node)}
@@ -260,10 +268,10 @@ export function VizTimeFilter() {
           const x = node.x - width / 2;
           const y = node.y - height / 2;
 
-          const radius = Math.min(10, fontSize * 0.6);
+          const radius = node.type.includes("claim") ? fontSize * 6 : 0;
 
           ctx.fillStyle = node.type.includes("claim")
-            ? "blue"
+            ? "DarkMagenta"
             : "green"
 
           if (highlightedNodeIds.has(node.id)) {
@@ -297,58 +305,37 @@ export function VizTimeFilter() {
           ctx.fill();
         }}
       />
+      <FloatingPanelStack bot="lg">
+        <DetailsPanel selectedNode={selectedNode} data={data} />
+        <FloatingPanel title={"Key"}>
+          <p style={{ backgroundColor: "green" }} className="text-white p-1 text-xl mb-3">Trigger Event Cluster</p>
+          <p style={{ backgroundColor: "DarkMagenta" }} className="text-white p-1 text-xl rounded-3xl">Claim Cluster</p>
+        </FloatingPanel>
+        <FloatingPanel title={"Config"} defaultOpen={false}>
+
+          <label className="flex">
+            <span className="mr-1 grow">Show all</span>
+            <input
+              type="checkbox"
+              checked={showAll}
+              onChange={() => setShowAll(!showAll)}
+            />
+          </label>
+          <br />
+          <label className="flex">
+            <span className="mr-1 grow">Date Window (mos)</span>
+            <input
+              className="w-16 border-2"
+              type="number"
+              value={filterLeeway}
+              onChange={(e) => setFilterLeeway(Number(e.target.value))}
+            />
+          </label>
+        </FloatingPanel>
+      </FloatingPanelStack>
 
       <div
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          borderRadius: "3px",
-          backgroundColor: "gray",
-          padding: "20px",
-          maxWidth: "500px"
-        }}
-      >
-        <p><a href="#home">Go Home</a></p>
-        <h2>Details</h2>
-        {selectedNode ? (
-          <div>
-            <p><strong>Title:</strong> {selectedNode.label}</p>
-            <p><strong>Date: </strong>{new Date(selectedNode.avgDate).toISOString().slice(0, 10)}</p>
-            {selectedNode.members && (
-              <div>
-                <p><strong>Members:</strong></p>
-                <ul>
-                  {selectedNode.members.map((m) => {
-                    const memberData =
-                      data.claims.find((c) => c.id === m) ||
-                      data.events.find((e) => e.id === m);
-
-                    return (
-                      <li key={m}>
-                        {memberData ? memberData.text : m}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p>Click a node to see details</p>
-        )}
-      </div>
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          background: "#222",
-          padding: "10px 20px",
-          boxSizing: "border-box",
-          zIndex: 10
-        }}
+        className="fixed bottom-0 left-0 w-full bg-gray-600 p-3 z-10"
       >
         <input
           type="range"
@@ -356,34 +343,14 @@ export function VizTimeFilter() {
           max={timeRange.max}
           value={inputDate}
           onChange={(e) => setInputDate(new Number(e.target.value))}
-          style={{
-            width: "100%"
-          }}
+          className="w-full"
         />
 
-        <div
-          style={{
-            color: "white",
-            fontSize: "12px",
-            marginTop: "5px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <span>
-            {new Date(inputDate).toISOString().slice(0, 10)} (± 6 months window)
-          </span>
 
-          <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <span>Show all</span>
-            <input
-              type="checkbox"
-              checked={showAll}
-              onChange={() => setShowAll(!showAll)}
-            />
-          </label>
-        </div>
+        <span className="text-white">
+          {new Date(inputDate).toISOString().slice(0, 10)} (± {filterLeeway} month(s) window)
+        </span>
+
       </div>
     </div>
   );

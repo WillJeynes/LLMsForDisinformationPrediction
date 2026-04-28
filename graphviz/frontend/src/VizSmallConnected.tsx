@@ -159,7 +159,7 @@ export function VizSmallConnected() {
 
   useEffect(() => {
     if (fgRef.current) {
-      fgRef.current.zoom(0.01, 0);
+      fgRef.current.zoom(0.05, 0);
     }
   }, []);
 
@@ -174,7 +174,8 @@ export function VizSmallConnected() {
         linkColor={() => "black"}
         linkWidth={2.5}
         onNodeClick={(node) => setSelectedNode(node)}
-
+        linkDirectionalArrowLength={100}
+        linkDirectionalArrowRelPos={0.9}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.label;
           const fontSize = 16 + 32 * node.members.length;
@@ -190,10 +191,10 @@ export function VizSmallConnected() {
           const x = node.x - width / 2;
           const y = node.y - height / 2;
 
-          const radius = Math.min(10, fontSize * 0.6);
+          const radius =  node.type.includes("claim") ? fontSize * 6 : 0;
 
           // background
-          ctx.fillStyle = node.type.includes("claim") ? "blue" : "green";
+          ctx.fillStyle = node.type.includes("claim") ? "DarkMagenta" : "green";
           drawRoundedRect(ctx, x, y, width, height, radius);
           ctx.fill();
 
@@ -227,10 +228,10 @@ export function VizSmallConnected() {
       <FloatingPanelStack>
         <DetailsPanel selectedNode={selectedNode} data={data} />
         <FloatingPanel title={"Key"}>
-          <p>Trigger Event Cluster</p>
-          <p>Claim Cluster</p>
+          <p style={{backgroundColor: "green"}} className="text-white p-1 text-xl mb-3">Trigger Event Cluster</p>
+          <p style={{backgroundColor: "DarkMagenta"}} className="text-white p-1 text-xl rounded-3xl">Claim Cluster</p>
         </FloatingPanel>
-        <FloatingPanel title={"Config"}>
+        <FloatingPanel title={"Config"} defaultOpen={false}>
           <label>
             Min connected graph size: <strong>{minGraphSize}</strong>
           </label>
@@ -243,11 +244,7 @@ export function VizSmallConnected() {
             onChange={(e) => setMinGraphSize(Number(e.target.value))}
           />
         </FloatingPanel>
-        
       </FloatingPanelStack>
-
-
-
     </div>
   );
 }

@@ -73,7 +73,7 @@ export function Home() {
                                 href="https://github.com/WillJeynes/LLMsForDisinformationPrediction/"
                                 className="block bg-white rounded-xl px-4 py-2 underline text-center w-64 m-1"
                             >
-                                Project Source Code
+                                Site Source Code
                             </a>
                     </div>
 
