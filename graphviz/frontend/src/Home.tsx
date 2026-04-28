@@ -24,6 +24,9 @@ export function Home() {
                         <p className="text-center">
                             A great introduction to the dataset on a curated set of examples
                         </p>
+                        <p className="text-center">
+                            Also <a className="underline" href="#3d">available in 3D</a>
+                        </p>
                     </div>
 
                     <div className="m-2 rounded-3xl w-full sm:w-[48%] bg-gray-200 p-10 flex flex-col items-center">

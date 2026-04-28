@@ -10,7 +10,7 @@ import { DetailsPanel } from "./utils/DetailsPanel";
 import { FloatingPanelStack } from "./utils/FloatingPanelStack";
 import { drawRoundedRect, getConnectedComponents } from "./graph/common";
 
-function buildGraph(data) {
+export function buildGraph(data) {
   const nodes = [];
   const links = [];
 
