@@ -2,28 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import * as d3 from "d3-force-3d";
 
-import data from "./data_date.json";
-import titlesData from "./titles_date.json";
+import data from "./data/data_date.json";
+import titlesData from "./data/titles_date.json";
 import HomeButton from "./utils/HomeButton";
 import { FloatingPanelStack } from "./utils/FloatingPanelStack";
 import { DetailsPanel } from "./utils/DetailsPanel";
 import { FloatingPanel } from "./utils/FloatingPanel";
-
-function drawRoundedRect(ctx, x, y, width, height, radius) {
-  const r = Math.min(radius, width / 2, height / 2);
-
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + width - r, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
-  ctx.lineTo(x + width, y + height - r);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-  ctx.lineTo(x + r, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
+import { drawRoundedRect, getConnectedComponents } from "./graph/common";
 
 function parseDateSafe(dateStr) {
   if (!dateStr) return null;
@@ -72,6 +57,7 @@ function buildGraph(data) {
       id: cluster.cluster_id,
       label: titleMap.get(cluster.cluster_id) || cluster.title || "Unnamed Claim Cluster",
       type: "claim_cluster",
+      type_nice: "Claim",
       members: cluster.members,
       avgDate
     });
@@ -84,6 +70,7 @@ function buildGraph(data) {
       id: cluster.cluster_id,
       label: titleMap.get(cluster.cluster_id) || cluster.title || "Unnamed Event Cluster",
       type: "event_cluster",
+      type_nice: "Event",
       members: cluster.members,
       avgDate
     });
@@ -99,41 +86,6 @@ function buildGraph(data) {
   return { nodes, links };
 }
 
-function getConnectedComponents(nodes, links) {
-  const adj = new Map();
-  nodes.forEach(n => adj.set(n.id, new Set()));
-
-  links.forEach(l => {
-    adj.get(l.source)?.add(l.target);
-    adj.get(l.target)?.add(l.source);
-  });
-
-  const visited = new Set();
-  const components = [];
-
-  for (const node of nodes) {
-    if (visited.has(node.id)) continue;
-
-    const stack = [node.id];
-    const comp = [];
-
-    while (stack.length) {
-      const id = stack.pop();
-      if (visited.has(id)) continue;
-
-      visited.add(id);
-      comp.push(id);
-
-      adj.get(id)?.forEach(nei => {
-        if (!visited.has(nei)) stack.push(nei);
-      });
-    }
-
-    components.push(comp);
-  }
-
-  return components;
-}
 
 export function VizTimeFilter() {
   const fgRef = useRef();
