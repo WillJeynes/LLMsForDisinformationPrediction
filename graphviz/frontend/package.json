@@ -8,13 +8,16 @@
     "build": "parcel build"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-force-graph-2d": "^1.29.1"
+    "react-force-graph-2d": "^1.29.1",
+    "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "parcel": "^2.14.0"
+    "parcel": "^2.14.0",
+    "parcel-reporter-static-files-copy": "^1.5.3"
   }
 }

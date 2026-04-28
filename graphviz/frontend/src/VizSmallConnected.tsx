@@ -4,6 +4,10 @@ import * as d3 from "d3-force-3d";
 
 import data from "./data.json";
 import titlesData from "./titles.json";
+import HomeButton from "./utils/HomeButton";
+import { FloatingPanel } from "./utils/FloatingPanel";
+import { DetailsPanel } from "./utils/DetailsPanel";
+import { FloatingPanelStack } from "./utils/FloatingPanelStack";
 
 function drawRoundedRect(ctx, x, y, width, height, radius) {
   const r = Math.min(radius, width / 2, height / 2);
@@ -33,6 +37,7 @@ function buildGraph(data) {
       id: cluster.cluster_id,
       label: titleMap.get(cluster.cluster_id) || cluster.title || "Unnamed Claim Cluster",
       type: "claim_cluster",
+      type_nice: "Claim",
       members: cluster.members
     });
   });
@@ -42,6 +47,7 @@ function buildGraph(data) {
       id: cluster.cluster_id,
       label: titleMap.get(cluster.cluster_id) || cluster.title || "Unnamed Event Cluster",
       type: "event_cluster",
+      type_nice: "Event",
       members: cluster.members
     });
   });
@@ -131,7 +137,7 @@ export function VizSmallConnected() {
       d3.forceManyBody().strength(-10000)
     );
 
-    
+
 
     // Link distance
     fgRef.current.d3Force(
@@ -151,7 +157,7 @@ export function VizSmallConnected() {
     fgRef.current.d3ReheatSimulation();
   }, [graphData]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (fgRef.current) {
       fgRef.current.zoom(0.01, 0);
     }
@@ -159,6 +165,7 @@ export function VizSmallConnected() {
 
   return (
     <div>
+      <HomeButton />
       <ForceGraph2D
         ref={fgRef}
         graphData={graphData}
@@ -217,20 +224,13 @@ export function VizSmallConnected() {
           ctx.fill();
         }}
       />
-
-      <div
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          borderRadius: "3px",
-          backgroundColor: "gray",
-          padding: "20px",
-          maxWidth: "500px"
-        }}
-      >
-        <p><a href="#home">Go Home</a></p>
-         <h2>Config</h2>
+      <FloatingPanelStack>
+        <DetailsPanel selectedNode={selectedNode} data={data} />
+        <FloatingPanel title={"Key"}>
+          <p>Trigger Event Cluster</p>
+          <p>Claim Cluster</p>
+        </FloatingPanel>
+        <FloatingPanel title={"Config"}>
           <label>
             Min connected graph size: <strong>{minGraphSize}</strong>
           </label>
@@ -242,35 +242,12 @@ export function VizSmallConnected() {
             value={minGraphSize}
             onChange={(e) => setMinGraphSize(Number(e.target.value))}
           />
+        </FloatingPanel>
+        
+      </FloatingPanelStack>
 
-        <h2>Details</h2>
-        {selectedNode ? (
-          <div>
-            <p><strong>Title:</strong> {selectedNode.label}</p>
 
-            {selectedNode.members && (
-              <div>
-                <p><strong>Members:</strong></p>
-                <ul>
-                  {selectedNode.members.map((m) => {
-                    const memberData =
-                      data.claims.find((c) => c.id === m) ||
-                      data.events.find((e) => e.id === m);
 
-                    return (
-                      <li key={m}>
-                        {memberData ? memberData.text : m}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p>Click a node to see details</p>
-        )}
-      </div>
     </div>
   );
 }
