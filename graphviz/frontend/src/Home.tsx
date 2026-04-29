@@ -25,7 +25,7 @@ export function Home() {
                             A great introduction to the dataset on a curated set of examples
                         </p>
                         <p className="text-center">
-                            Also <a className="underline" href="#3d">available in 3D</a>
+                            Also <a className="underline" href="#3d">available in 3D</a> (experimental)
                         </p>
                     </div>
 

@@ -50,6 +50,7 @@ export function buildGraph(data) {
 
 export function VizSmallConnected() {
   const fgRef = useRef();
+  const detailsPanelRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
   const [minGraphSize, setMinGraphSize] = useState(10);
 
@@ -122,7 +123,7 @@ export function VizSmallConnected() {
         nodeAutoColorBy="type"
         linkColor={() => "black"}
         linkWidth={2.5}
-        onNodeClick={(node) => setSelectedNode(node)}
+        onNodeClick={(node) => { detailsPanelRef.current.open(); setSelectedNode(node) }}
         linkDirectionalArrowLength={100}
         linkDirectionalArrowRelPos={0.9}
         nodeCanvasObject={(node, ctx, globalScale) => {
@@ -140,7 +141,7 @@ export function VizSmallConnected() {
           const x = node.x - width / 2;
           const y = node.y - height / 2;
 
-          const radius =  node.type.includes("claim") ? fontSize * 6 : 0;
+          const radius = node.type.includes("claim") ? fontSize * 6 : 0;
 
           // background
           ctx.fillStyle = node.type.includes("claim") ? "DarkMagenta" : "green";
@@ -175,10 +176,10 @@ export function VizSmallConnected() {
         }}
       />
       <FloatingPanelStack>
-        <DetailsPanel selectedNode={selectedNode} data={data} />
+        <DetailsPanel selectedNode={selectedNode} data={data} ref={detailsPanelRef} />
         <FloatingPanel title={"Key"}>
-          <p style={{backgroundColor: "green"}} className="text-white p-1 text-xl mb-3">Trigger Event Cluster</p>
-          <p style={{backgroundColor: "DarkMagenta"}} className="text-white p-1 text-xl rounded-3xl">Claim Cluster</p>
+          <p style={{ backgroundColor: "green" }} className="text-white p-1 text-xl mb-3">Trigger Event Cluster</p>
+          <p style={{ backgroundColor: "DarkMagenta" }} className="text-white p-1 text-xl rounded-3xl">Claim Cluster</p>
         </FloatingPanel>
         <FloatingPanel title={"Config"} defaultOpen={false}>
           <label>

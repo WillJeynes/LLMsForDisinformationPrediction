@@ -89,6 +89,7 @@ function buildGraph(data) {
 
 export function VizTimeFilter() {
   const fgRef = useRef();
+  const detailsPanelRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
   const [inputDate, setInputDate] = useState(1682353753000); //some time in 2023
   const [showAll, setShowAll] = useState(false);
@@ -204,7 +205,7 @@ export function VizTimeFilter() {
           return bothHighlighted ? "black" : "rgba(0,0,0,0)";
         }}
         linkWidth={2.5}
-        onNodeClick={(node) => setSelectedNode(node)}
+        onNodeClick={(node) => { detailsPanelRef.current.open(); setSelectedNode(node)}}
         nodeCanvasObject={(node, ctx) => {
           const label = node.label;
 
@@ -258,7 +259,7 @@ export function VizTimeFilter() {
         }}
       />
       <FloatingPanelStack bot="lg">
-        <DetailsPanel selectedNode={selectedNode} data={data} />
+        <DetailsPanel selectedNode={selectedNode} data={data} ref={detailsPanelRef} />
         <FloatingPanel title={"Key"}>
           <p style={{ backgroundColor: "green" }} className="text-white p-1 text-xl mb-3">Trigger Event Cluster</p>
           <p style={{ backgroundColor: "DarkMagenta" }} className="text-white p-1 text-xl rounded-3xl">Claim Cluster</p>

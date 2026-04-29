@@ -1,15 +1,23 @@
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { FloatingPanel } from "./FloatingPanel";
 
-export function DetailsPanel({ selectedNode, data }) {
+export const DetailsPanel = forwardRef(function DetailsPanel(
+  { selectedNode, data }, ref) {
+  const fpref = useRef();
+
+  useImperativeHandle(ref, () => ({
+    open: () => { fpref.current.open() },
+  }));
+
   return (
-    <FloatingPanel title="Details">
-      
+    <FloatingPanel title="Details" ref={fpref}>
+
       {selectedNode ? (
         <div className="space-y-3">
           <p>
             <strong>Type:</strong> {selectedNode.type_nice} Cluster
           </p>
-          
+
           <p>
             <strong>Title:</strong> {selectedNode.label}
           </p>
@@ -40,4 +48,4 @@ export function DetailsPanel({ selectedNode, data }) {
       )}
     </FloatingPanel>
   );
-}
+})

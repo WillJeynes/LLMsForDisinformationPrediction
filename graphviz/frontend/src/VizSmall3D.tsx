@@ -14,6 +14,7 @@ import SpriteText from 'three-spritetext';
 
 export function VizSmall3D() {
   const fgRef = useRef();
+  const detailsPanelRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
   const [minGraphSize, setMinGraphSize] = useState(10);
   const [showLabel, setShowLabel] = useState(false);
@@ -53,7 +54,7 @@ export function VizSmall3D() {
         nodeAutoColorBy="type"
         linkColor={() => "black"}
         linkWidth={2.5}
-        onNodeClick={(node) => setSelectedNode(node)}
+        onNodeClick={(node) => { detailsPanelRef.current.open(); setSelectedNode(node)}}
         backgroundColor="white"
         nodeThreeObject={(node) => {
           const circle = new THREE.Mesh(
@@ -83,7 +84,7 @@ export function VizSmall3D() {
         }
       />
       <FloatingPanelStack>
-        <DetailsPanel selectedNode={selectedNode} data={data} />
+        <DetailsPanel selectedNode={selectedNode} data={data} ref={detailsPanelRef} />
         <FloatingPanel title={"Config"}>
           <label className="flex">
             <span className="mr-1 grow">Show Labels</span>
