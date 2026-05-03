@@ -22,6 +22,12 @@ export const DetailsPanel = forwardRef(function DetailsPanel(
             <strong>Title:</strong> {selectedNode.label}
           </p>
 
+          {selectedNode.avgDate &&
+          <p>
+            <strong>Date:</strong> {new Date(selectedNode.avgDate).toISOString().slice(0, 10)}
+          </p>
+          }
+
           {selectedNode.members && (
             <div>
               <p className="font-semibold">Members:</p>
